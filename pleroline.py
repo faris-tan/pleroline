@@ -69,7 +69,7 @@ class PleroApp(object):
 
     def Run(self):
         """Call this method to start the app."""
-        urwid.MainLoop(self.frame) # , unhandled_input=self.temp_handler).run()
+        urwid.MainLoop(self.frame).run() # , unhandled_input=self.temp_handler).run()
 #pylint: enable=too-few-public-methods
 
 #pylint: disable=unused-argument

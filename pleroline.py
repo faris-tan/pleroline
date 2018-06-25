@@ -1,7 +1,13 @@
 #!/usr/bin/env python
 """Main executable for the pleroline application. A CLI pleroma client."""
+from pathlib import Path
 import sys
+
+import mastodon
 import urwid
+
+import config
+from login_view import LoginView
 
 #pylint: disable=too-few-public-methods
 class PleroApp(object):
@@ -10,19 +16,12 @@ class PleroApp(object):
     @staticmethod
     def create_title(text):
         """Returns a title widget."""
-        text_label = urwid.Text(text)
-        widgets = [
-            urwid.Padding(urwid.Text('~', align='left')),
-            text_label,
-            urwid.Padding(urwid.Text('~', align='right')),
-        ]
-        container = urwid.Columns(widgets)
-        return urwid.LineBox(container)
+        text_label = urwid.Text(text, align='center')
+        return urwid.LineBox(text_label)
 
-    def __init__(self):
+    def _set_up_views(self):
         # This is the main application's view, a container widget to be filled
         # by whatever is currently in the scene.
-        self.main_view = urwid.SolidFill('x')
         self.header = PleroApp.create_title(
             'Pleroline - A Pleroma client.')
         self.footer = PleroApp.create_title('by Faris <faris@nyan.cafe>')
@@ -31,6 +30,21 @@ class PleroApp(object):
             header=self.header,
             footer=self.footer,
             focus_part='body')
+        self.views = {}
+        self.views['login'] = LoginView(self)
+        self.replace_view('login')
+
+    def __init__(self):
+        self.config = config.Config(str(Path.home()))
+        self.config.load_config()
+        # I hate python.
+        self.api = None
+        self.main_view = None
+        self.views = None
+        self.frame = None
+        self.header = None
+        self.footer = None
+        self._set_up_views()
 
     def set_footer(self, text):
         """Sets the footer text.
@@ -54,18 +68,10 @@ class PleroApp(object):
         """Replace the old main_view with a new one, for a scene manager.
 
         Args:
-            new_view: a urwid container widget.
+            new_view: str, view key in the views map.
         """
         self.main_view = new_view
-        self.frame.body = urwid.LineBox(self.main_view)
-
-    #def temp_handler(self, _):
-    #    # Example for future use on how to replace widgets.
-    #    # new_widget = urwid.SolidFill('o')
-    #    # self.replace_view(new_widget)
-    #    # Example on how to set header/footer
-    #    # self.set_footer('hello world')
-    #    # self.set_header('foo bar')
+        self.frame.body = urwid.LineBox(self.views[self.main_view])
 
     def Run(self):
         """Call this method to start the app."""

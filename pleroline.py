@@ -3,12 +3,13 @@
 from pathlib import Path
 import sys
 
-import mastodon
 import urwid
 
 import config
 from login_view import LoginView
+from auth import Auth
 
+#pylint: disable=too-many-instance-attributes
 #pylint: disable=too-few-public-methods
 class PleroApp(object):
     """Pleroline main app, entry point of everything."""
@@ -34,8 +35,35 @@ class PleroApp(object):
         self.views['login'] = LoginView(self)
         self.replace_view('login')
 
+    def _set_up_auth(self):
+        auth = Auth(self.config.configs['instance'])
+        try:
+            app_creds = self.config.load_app_cred()
+        except config.MissingAppAuthFileError:
+            app_creds = auth.get_app_credentials()
+            self.config.save_app_cred(app_creds[0], app_creds[1])
+        try:
+            token = self.config.load_user_cred()
+            self.api = auth.get_api_client(token, app_creds)
+        except config.MissingUserAuthFileError:
+            self.api = None
+
     def __init__(self):
         self.config = config.Config(str(Path.home()))
+        if self.config.is_first_run():
+            # TODO:This is super ugly, I'll fix it one day.
+            print('This is a first run, the pleroline software is missing a '
+                  'config file. Please create ~/.pleroline/pleroline.cfg file '
+                  'and make sure its contents look like this:')
+            print('')
+            print('[DEFAULT]')
+            print('instance = nyan.cafe')
+            print('')
+            print('')
+            print('I\'m sorry but this software is too dumb yet to deal with '
+                  'this kind of shit automatically. I\'ll fix it one day, I '
+                  'promise! - Faris')
+            sys.exit(1)
         self.config.load_config()
         # I hate python.
         self.api = None
@@ -45,6 +73,14 @@ class PleroApp(object):
         self.header = None
         self.footer = None
         self._set_up_views()
+        self._set_up_auth()
+
+        if not self.api:
+            # TODO: login view here
+            pass
+        else:
+            # TODO: main view here
+            pass
 
     def set_footer(self, text):
         """Sets the footer text.
@@ -75,8 +111,9 @@ class PleroApp(object):
 
     def Run(self):
         """Call this method to start the app."""
-        urwid.MainLoop(self.frame).run() # , unhandled_input=self.temp_handler).run()
+        urwid.MainLoop(self.frame).run()
 #pylint: enable=too-few-public-methods
+#pylint: enable=too-many-instance-attributes
 
 #pylint: disable=unused-argument
 def main(argv=None):

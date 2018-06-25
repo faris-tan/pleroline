@@ -3,12 +3,12 @@ import configparser
 import os
 
 
-class MissingUserAuthFile(Exception):
+class MissingUserAuthFileError(Exception):
     """Exception thrown when no user credentials file is found."""
     pass
 
 
-class MissingAppAuthFile(Exception):
+class MissingAppAuthFileError(Exception):
     """Exception thrown when no app credentials file is found."""
     pass
 
@@ -75,7 +75,7 @@ class Config(object):
             app_id = config.get('APP', 'id')
             secret = config.get('APP', 'secret')
         except (configparser.NoSectionError, configparser.NoOptionError):
-            raise MissingAppAuthFile()
+            raise MissingAppAuthFileError()
         return (app_id, secret)
 
     def save_user_cred(self, token):
@@ -97,5 +97,5 @@ class Config(object):
         try:
             token = config.get('USER', 'token')
         except (configparser.NoSectionError, configparser.NoOptionError):
-            raise MissingUserAuthFile()
+            raise MissingUserAuthFileError()
         return token

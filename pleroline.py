@@ -4,9 +4,11 @@ from pathlib import Path
 import sys
 
 import urwid
+import mastodon
 
 import config
 from login_view import LoginView
+from main_view import MainView
 from auth import Auth
 
 #pylint: disable=too-many-instance-attributes
@@ -33,18 +35,18 @@ class PleroApp(object):
             focus_part='body')
         self.views = {}
         self.views['login'] = LoginView(self)
-        self.replace_view('login')
+        self.views['main'] = MainView(self)
 
     def _set_up_auth(self):
-        auth = Auth(self.config.configs['instance'])
+        self.auth = Auth(self.config.configs['instance'])
         try:
             app_creds = self.config.load_app_cred()
         except config.MissingAppAuthFileError:
-            app_creds = auth.get_app_credentials()
+            app_creds = self.auth.get_app_credentials()
             self.config.save_app_cred(app_creds[0], app_creds[1])
         try:
             token = self.config.load_user_cred()
-            self.api = auth.get_api_client(token, app_creds)
+            self.api = self.auth.get_api_client(token, app_creds)
         except config.MissingUserAuthFileError:
             self.api = None
 
@@ -72,15 +74,14 @@ class PleroApp(object):
         self.frame = None
         self.header = None
         self.footer = None
+        self.auth = None
         self._set_up_views()
         self._set_up_auth()
 
         if not self.api:
-            # TODO: login view here
-            pass
+            self.replace_view('login')
         else:
-            # TODO: main view here
-            pass
+            self.replace_view('main')
 
     def set_footer(self, text):
         """Sets the footer text.
@@ -99,6 +100,33 @@ class PleroApp(object):
         """
         self.header = PleroApp.create_title(text)
         self.frame.header = self.header
+
+    def try_log_in(self, email, password):
+        """Tries to log into the pleroma instance.
+
+        If successful, self.api will be set to the appropriate
+        value.
+
+        Args:
+            email: str, the user's email.
+            password: str, the user's password.
+
+        Returns:
+            (True, '') in case of success.
+            (False, error) in case of failure, where error is a str with the
+            error message.
+        """
+        app_creds = self.config.load_app_cred()
+        try:
+            token = self.auth.log_in_user(email, password, app_creds)
+            self.api = self.auth.get_api_client(token, app_creds)
+        except (mastodon.MastodonAPIError,
+                mastodon.MastodonIllegalArgumentError) as err:
+            return (False, str(err))
+        self.config.save_user_cred(token)
+        return (True, '')
+
+
 
     def replace_view(self, new_view):
         """Replace the old main_view with a new one, for a scene manager.

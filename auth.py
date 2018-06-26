@@ -15,7 +15,7 @@ class Auth(object):
             else:
                 instance = 'https://' + instance
         self.instance = instance
-        self.scopes = ['read', 'write', 'follow', 'push']
+        self.scopes = ['read', 'write', 'follow']
 
     def get_app_credentials(self):
         """Queries the instance to create a new app and obtain its creds.

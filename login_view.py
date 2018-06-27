@@ -1,6 +1,7 @@
 """Login view."""
 import urwid
 
+import style
 import view
 import utils
 
@@ -16,7 +17,7 @@ class LoginView(view.Base):
             email_edit,
             urwid.Text('Password', align='center'),
             password_edit,
-            urwid.LineBox(login_button)]
+            urwid.AttrWrap(urwid.LineBox(login_button), style.ATTRS['button'])]
         login_box = utils.create_pile_flow(widgets, 25, 'center')
         super(LoginView, self).__init__(main_view, optional_base=login_box)
         urwid.connect_signal(
@@ -30,6 +31,6 @@ class LoginView(view.Base):
         (success, err) = self.main.try_log_in(email, password)
         if not success:
             password_widget.set_edit_text('')
-            print(err)
+            self.spawn_error(err)
         else:
             self.main.replace_view('main')

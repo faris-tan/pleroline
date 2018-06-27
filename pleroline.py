@@ -6,10 +6,11 @@ import sys
 import urwid
 import mastodon
 
+from auth import Auth
 import config
 from login_view import LoginView
 from main_view import MainView
-from auth import Auth
+import style
 
 #pylint: disable=too-many-instance-attributes
 #pylint: disable=too-few-public-methods
@@ -20,7 +21,8 @@ class PleroApp(object):
     def create_title(text):
         """Returns a title widget."""
         text_label = urwid.Text(text, align='center')
-        return urwid.LineBox(text_label)
+        return urwid.AttrWrap(urwid.LineBox(text_label),
+                              style.ATTRS['head/foot'])
 
     def _set_up_views(self):
         # This is the main application's view, a container widget to be filled
@@ -51,6 +53,7 @@ class PleroApp(object):
             self.api = None
 
     def __init__(self):
+        # TODO: Have proper color palette for different ranges (8, 16, 256)
         self.config = config.Config(str(Path.home()))
         if self.config.is_first_run():
             # TODO:This is super ugly, I'll fix it one day.
@@ -139,7 +142,11 @@ class PleroApp(object):
 
     def Run(self):
         """Call this method to start the app."""
-        urwid.MainLoop(self.frame).run()
+        urwid.MainLoop(
+            self.frame,
+            style.BASE_ATTRS,
+            handle_mouse=True,
+            pop_ups=True).run()
 #pylint: enable=too-few-public-methods
 #pylint: enable=too-many-instance-attributes
 

@@ -19,10 +19,16 @@ class Base(urwid.PopUpLauncher):
                              lambda button: self.close_pop_up())
         super(Base, self).__init__(self.base)
 
+    @staticmethod
+    def get_term_size():
+        """Returns the (rows, cols) tuple of the current terminal window."""
+        (rows, cols) = os.popen('stty size', 'r').read().split()
+        return (int(rows), int(cols))
+
     def get_pop_up_parameters(self):
-        rows, cols = os.popen('stty size', 'r').read().split()
-        return {'left': int(cols) / 2 - 40 / 2,
-                'top': int(rows) / 2 - 10,
+        rows, cols = Base.get_term_size()
+        return {'left': cols / 2 - 40 / 2,
+                'top': rows / 2 - 10,
                 'overlay_width': 40,
                 'overlay_height': 10}
 

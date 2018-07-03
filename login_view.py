@@ -13,7 +13,7 @@ class LoginView(view.Base):
         password_edit = urwid.Edit(caption='> ', mask='*')
         login_button = urwid.Button('Log In')
         widgets = [
-            urwid.Text('Email', align='center'),
+            urwid.Text('Email (or Username)', align='center'),
             email_edit,
             urwid.Text('Password', align='center'),
             password_edit,

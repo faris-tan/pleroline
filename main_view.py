@@ -17,6 +17,7 @@ class MainView(view.Base):
 
     def __init__(self, main_view):
         self.reply_box = None
+        self.char_counter = None
         self.left_pane = urwid.ListBox(
             urwid.SimpleFocusListWalker([]))
         self.mid_pane = urwid.ListBox(
@@ -34,14 +35,19 @@ class MainView(view.Base):
             main_view, optional_base=urwid.Filler(grid))
         self.create_reply_box()
 
+    def reply_box_char_counter_handler(self):
+        self.char_counter.set_text('%d/5000' % len(self.reply_box.text))
+
     def create_reply_box(self):
         """Generates the reply box widget on the left pane."""
         #TODO: This is just a mess of spaghetti code. Make it more flexible.
         self.reply_box = urwid.Edit(
             caption='', edit_text='', multiline=True)
-        #TODO: Make the text_counter increase/decrease characters based on
-        #      the contents of the reply_box.
-        text_counter = urwid.Text('0/5000', align='right')
+        self.char_counter = urwid.Text('0/5000', align='right')
+        #TODO: This lambda shit here isn't pretty
+        urwid.connect_signal(
+            self.reply_box, 'postchange',
+            lambda _, __: self.reply_box_char_counter_handler())
         post_button = urwid.Button('Submit')
         container = urwid.BoxAdapter(
             urwid.ListBox(
@@ -50,7 +56,7 @@ class MainView(view.Base):
                         urwid.BoxAdapter(
                             urwid.Filler(self.reply_box), height=7)),
                     urwid.GridFlow(
-                        [post_button, text_counter], align='right',
+                        [post_button, self.char_counter], align='right',
                         cell_width=30, h_sep=0, v_sep=0)])),
             height=10)
         self.left_pane.body.append(container)

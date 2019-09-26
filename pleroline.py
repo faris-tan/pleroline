@@ -14,7 +14,7 @@ import style
 
 #pylint: disable=too-many-instance-attributes
 #pylint: disable=too-few-public-methods
-class PleroApp(object):
+class PleroApp():
     """Pleroline main app, entry point of everything."""
 
     @staticmethod
@@ -129,8 +129,6 @@ class PleroApp(object):
         self.config.save_user_cred(token)
         return (True, '')
 
-
-
     def replace_view(self, new_view):
         """Replace the old main_view with a new one, for a scene manager.
 
@@ -139,14 +137,32 @@ class PleroApp(object):
         """
         self.main_view = new_view
         self.frame.body = urwid.LineBox(self.views[self.main_view])
+        #XXX: hack
+        if new_view == 'main':
+            self.views[self.main_view].refresh_mid_pane()
+
+    @staticmethod
+    def timed_refresh(main_loop, self):
+        """Refresh the main page every 2 seconds."""
+        if self.main_view == 'main':
+            self.replace_view('main')
+        main_loop.set_alarm_in(2.0, self.timed_refresh, user_data=self)
 
     def Run(self):
         """Call this method to start the app."""
-        urwid.MainLoop(
+        def _show_or_exit(key):
+            """Handler for stray inputs in the urwid main loop"""
+            if key in ('q', 'Q', 'esc'):
+                raise urwid.ExitMainLoop()
+        loop = urwid.MainLoop(
             self.frame,
             style.BASE_ATTRS,
             handle_mouse=True,
-            pop_ups=True).run()
+            unhandled_input=_show_or_exit,
+            pop_ups=True)
+        # TODO - Have the refresh timer set and read from the app configs
+        loop.set_alarm_in(2.0, self.timed_refresh, user_data=self)
+        loop.run()
 #pylint: enable=too-few-public-methods
 #pylint: enable=too-many-instance-attributes
 

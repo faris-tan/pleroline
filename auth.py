@@ -1,7 +1,7 @@
 """Module to handle mastodon authentication."""
 import mastodon
 
-class Auth(object):
+class Auth():
     """Object used to handle all auth-related API calls.
 
     This class is intentionally left as dumb and simple as possible, because

@@ -5,15 +5,13 @@ import os
 
 class MissingUserAuthFileError(Exception):
     """Exception thrown when no user credentials file is found."""
-    pass
 
 
 class MissingAppAuthFileError(Exception):
     """Exception thrown when no app credentials file is found."""
-    pass
 
 
-class Config(object):
+class Config():
     """Configuration handler object."""
 
     # Normal config file name.

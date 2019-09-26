@@ -1,6 +1,7 @@
 """Main pleroline client view."""
 import urwid
 
+import event_stream
 import view
 
 class MainView(view.Base):
@@ -19,8 +20,7 @@ class MainView(view.Base):
         self.left_pane = urwid.ListBox(
             urwid.SimpleFocusListWalker([]))
         self.mid_pane = urwid.ListBox(
-            urwid.SimpleFocusListWalker([
-                urwid.Text('Mid Pane', align='center')]))
+            urwid.SimpleFocusListWalker([]))
         self.right_pane = urwid.ListBox(
             urwid.SimpleFocusListWalker([
                 urwid.Text('Right Pane', align='center')]))
@@ -30,15 +30,15 @@ class MainView(view.Base):
         grid = urwid.GridFlow(
             [urwid.LineBox(urwid.BoxAdapter(b, height=rows-4)) for b in boxes],
             cell_width=int(cols/3)-1, h_sep=0, v_sep=0, align='center')
-        self.create_reply_box()
         super(MainView, self).__init__(
             main_view, optional_base=urwid.Filler(grid))
+        self.create_reply_box()
 
     def create_reply_box(self):
         """Generates the reply box widget on the left pane."""
         #TODO: This is just a mess of spaghetti code. Make it more flexible.
         self.reply_box = urwid.Edit(
-            caption='', edit_text='Just landed in L.A.', multiline=True)
+            caption='', edit_text='', multiline=True)
         #TODO: Make the text_counter increase/decrease characters based on
         #      the contents of the reply_box.
         text_counter = urwid.Text('0/5000', align='right')
@@ -61,5 +61,11 @@ class MainView(view.Base):
         """Send post to the mastodon API."""
         post = self.reply_box.get_edit_text()
         self.main.api.toot(post)
-        #TODO: Remove duplicated string. Also probably remove this text anyway.
-        self.reply_box.set_edit_text('Just landed in L.A.')
+        self.reply_box.set_edit_text('')
+        self.refresh_mid_pane()
+
+    def refresh_mid_pane(self):
+        timeline = event_stream.fetch_timeline(self.main.api, 'public')
+        self.mid_pane.body = []
+        for post in timeline:
+            self.mid_pane.body.append(post)

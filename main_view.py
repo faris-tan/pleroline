@@ -67,5 +67,5 @@ class MainView(view.Base):
     def refresh_mid_pane(self):
         timeline = event_stream.fetch_timeline(self.main.api, 'public')
         self.mid_pane.body = []
-        for post in timeline:
-            self.mid_pane.body.append(post)
+        for toot in timeline:
+            self.mid_pane.body.append(toot.display())

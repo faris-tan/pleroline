@@ -34,7 +34,7 @@ class PleroApp():
         self.views['login'] = LoginView(self)
         self.views['main'] = MainView(self)
         self.frame = urwid.Frame(
-            urwid.LineBox(self.view['main']),
+            urwid.LineBox(self.views['main']),
             header=self.header,
             footer=self.footer,
             focus_part='body')

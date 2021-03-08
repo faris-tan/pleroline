@@ -30,14 +30,15 @@ class PleroApp():
         self.header = PleroApp.create_title(
             'Pleroline - A Pleroma client.')
         self.footer = PleroApp.create_title('by Faris <faris@nyan.cafe>')
-        self.frame = urwid.Frame(
-            urwid.LineBox(self.main_view),
-            header=self.header,
-            footer=self.footer,
-            focus_part='body')
         self.views = {}
         self.views['login'] = LoginView(self)
         self.views['main'] = MainView(self)
+        self.frame = urwid.Frame(
+            urwid.LineBox(self.views['main']),
+            header=self.header,
+            footer=self.footer,
+            focus_part='body')
+
 
     def _set_up_auth(self):
         self.auth = Auth(self.config.configs['instance'])
